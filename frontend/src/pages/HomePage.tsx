@@ -5,19 +5,44 @@ function HomePage() {
   const [roomId, setRoomId] = useState("");
   const navigate = useNavigate();
 
-  const createRoom = () => {
-    const newRoomId = crypto.randomUUID();
-    navigate(`/editor/${newRoomId}`);
+  const createRoom = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/documents", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create room");
+      }
+
+      const document = await response.json();
+
+      navigate(`/editor/${document.roomId}`);
+    } catch (error) {
+      console.error("Error creating room:", error);
+    }
   };
 
-  const joinRoom = () => {
+  const joinRoom = async () => {
     const trimmedRoomId = roomId.trim();
 
     if (!trimmedRoomId) {
       return;
     }
 
-    navigate(`/editor/${trimmedRoomId}`);
+    try {
+      const response = await fetch(
+        `http://localhost:3000/documents/${trimmedRoomId}`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Room not found");
+      }
+
+      navigate(`/editor/${trimmedRoomId}`);
+    } catch (error) {
+      console.error("Error joining room:", error);
+    }
   };
 
   return (
