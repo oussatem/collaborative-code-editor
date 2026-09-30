@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
+import { io, Socket } from "socket.io-client";
 
 function EditorPage() {
   const { roomId } = useParams();
@@ -8,6 +9,8 @@ function EditorPage() {
   const [language, setLanguage] = useState("javascript");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [userCount, setUserCount] = useState(0);
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     const loadDocument = async () => {
@@ -35,6 +38,47 @@ function EditorPage() {
     loadDocument();
   }, [roomId]);
 
+  useEffect(() => {
+    if (!roomId) {
+      return;
+    }
+
+    const socket = io("http://localhost:3000");
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("Connected to WebSocket server:", socket.id);
+
+      socket.emit("join-room", roomId);
+    });
+
+    socket.on("code-update", (updatedCode: string) => {
+      setCode(updatedCode);
+    });
+
+    socket.on("user-count", (count: number) => {
+      setUserCount(count);
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [roomId]);
+
+  const handleCodeChange = (value: string | undefined) => {
+    const updatedCode = value ?? "";
+
+    setCode(updatedCode);
+
+    if (roomId) {
+      socketRef.current?.emit("code-change", {
+        roomId,
+        code: updatedCode,
+      });
+    }
+  };
+
   if (loading) {
     return <p>Loading document...</p>;
   }
@@ -49,6 +93,7 @@ function EditorPage() {
         <div>
           <h1>Collaborative Code Editor</h1>
           <p>Room: {roomId}</p>
+          <p>Users connected : {userCount}</p>
         </div>
       </header>
 
@@ -57,7 +102,7 @@ function EditorPage() {
           height="100%"
           language={language}
           value={code}
-          onChange={(value) => setCode(value ?? "")}
+          onChange={handleCodeChange}
           theme="vs-dark"
         />
       </section>
