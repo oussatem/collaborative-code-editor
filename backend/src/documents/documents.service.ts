@@ -1,29 +1,29 @@
 import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { randomUUID } from "crypto";
-import { Document } from "./document.interface";
+import { Document } from "./document.entity";
 
 @Injectable()
 export class DocumentsService {
-  private readonly documents = new Map<string, Document>();
+  constructor(
+    @InjectRepository(Document)
+    private readonly documentsRepository: Repository<Document>,
+  ) {}
 
-  create(): Document {
-    const roomId = randomUUID();
-    const now = new Date();
-
-    const document: Document = {
-      roomId,
+  async create(): Promise<Document> {
+    const document = this.documentsRepository.create({
+      roomId: randomUUID(),
       content: "// Start coding here...",
       language: "javascript",
-      createdAt: now,
-      updatedAt: now,
-    };
+    });
 
-    this.documents.set(roomId, document);
-
-    return document;
+    return this.documentsRepository.save(document);
   }
 
-  findByRoomId(roomId: string): Document | undefined {
-    return this.documents.get(roomId);
+  async findByRoomId(roomId: string): Promise<Document | null> {
+    return this.documentsRepository.findOne({
+      where: { roomId },
+    });
   }
 }

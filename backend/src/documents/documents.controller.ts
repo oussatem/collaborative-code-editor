@@ -17,8 +17,8 @@ export class DocumentsController {
   }
 
   @Get(":roomId")
-  findOne(@Param("roomId") roomId: string) {
-    const document = this.documentsService.findByRoomId(roomId);
+  async findOne(@Param("roomId") roomId: string) {
+    const document = await this.documentsService.findByRoomId(roomId);
 
     if (!document) {
       throw new NotFoundException("Document not found");
