@@ -26,4 +26,8 @@ export class DocumentsService {
       where: { roomId },
     });
   }
+
+  async updateContent(roomId: string, content: string): Promise<void> {
+    await this.documentsRepository.update({ roomId }, { content });
+  }
 }

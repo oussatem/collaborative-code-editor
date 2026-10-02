@@ -7,6 +7,7 @@ import {
   OnGatewayDisconnect,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { DocumentsService } from "./documents.service";
 
 @WebSocketGateway({
   cors: {
@@ -14,6 +15,8 @@ import { Server, Socket } from "socket.io";
   },
 })
 export class DocumentsGateway implements OnGatewayDisconnect {
+  constructor(private readonly documentsService: DocumentsService) {}
+
   @WebSocketServer()
   server: Server;
 
@@ -56,10 +59,12 @@ export class DocumentsGateway implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage("code-change")
-  handleCodeChange(
+  async handleCodeChange(
     @MessageBody() data: { roomId: string; code: string },
     @ConnectedSocket() client: Socket,
   ) {
+    await this.documentsService.updateContent(data.roomId, data.code);
+
     client.to(data.roomId).emit("code-update", data.code);
   }
 }
