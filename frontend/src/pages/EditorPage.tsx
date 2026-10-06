@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import { io, Socket } from "socket.io-client";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function EditorPage() {
   const { roomId } = useParams();
   const [code, setCode] = useState("");
@@ -16,7 +18,7 @@ function EditorPage() {
     const loadDocument = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3000/documents/${roomId}`,
+          `${API_URL}/documents/${roomId}`,
         );
 
         if (!response.ok) {
@@ -43,7 +45,7 @@ function EditorPage() {
       return;
     }
 
-    const socket = io("http://localhost:3000");
+    const socket = io(API_URL);
     socketRef.current = socket;
 
     socket.on("connect", () => {

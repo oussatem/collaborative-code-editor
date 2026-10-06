@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function HomePage() {
   const [roomId, setRoomId] = useState("");
   const navigate = useNavigate();
 
   const createRoom = async () => {
     try {
-      const response = await fetch("http://localhost:3000/documents", {
+      const response = await fetch(`${API_URL}/documents`, {
         method: "POST",
       });
 
@@ -32,7 +34,7 @@ function HomePage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/documents/${trimmedRoomId}`,
+        `${API_URL}/documents/${trimmedRoomId}`,
       );
 
       if (!response.ok) {

@@ -11,14 +11,14 @@ import { DocumentsService } from "./documents.service";
 
 @WebSocketGateway({
   cors: {
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_URL,
   },
 })
 export class DocumentsGateway implements OnGatewayDisconnect {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   private readonly clientRooms = new Map<string, string>();
 
